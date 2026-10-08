@@ -1,0 +1,118 @@
+{
+  "name": "micro-canvas-confetti-native",
+  "version": "0.1.0",
+  "description": "Tiny React Native confetti and coin bursts — same physics as micro-canvas-confetti-physics, plus image coins and a collect flight into a target. Views + Image only, no native modules.",
+  "license": "MIT",
+  "author": "Moshe Hatab",
+  "keywords": [
+    "react-native",
+    "expo",
+    "confetti",
+    "coins",
+    "rewards",
+    "celebration",
+    "animation",
+    "particles",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MosheHatab/micro-canvas-confetti-native.git"
+  },
+  "homepage": "https://github.com/MosheHatab/micro-canvas-confetti-native#readme",
+  "bugs": {
+    "url": "https://github.com/MosheHatab/micro-canvas-confetti-native/issues"
+  },
+  "main": "lib/commonjs/index.js",
+  "module": "lib/module/index.js",
+  "types": "lib/typescript/index.d.ts",
+  "react-native": "src/index.ts",
+  "source": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/typescript/index.d.ts",
+      "react-native": "./src/index.ts",
+      "import": "./lib/module/index.js",
+      "require": "./lib/commonjs/index.js"
+    },
+    "./core": {
+      "types": "./lib/typescript/core.d.ts",
+      "react-native": "./src/core.ts",
+      "import": "./lib/module/core.js",
+      "require": "./lib/commonjs/core.js"
+    }
+  },
+  "files": [
+    "src",
+    "lib",
+    "!**/__tests__",
+    "!**/*.test.*"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "bob build",
+    "clean": "rimraf lib",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "npm run build && node scripts/publish.mjs",
+    "check:package": "publint",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-native": ">=0.72.0"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0",
+    "@eslint/js": "^9.39.4",
+    "@types/react": "^18.3.12",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-simple-import-sort": "^13.0.0",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "publint": "^0.3.21",
+    "react": "18.3.1",
+    "react-native": "0.76.5",
+    "react-native-builder-bob": "^0.32.1",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.62.1",
+    "vitest": "^4.1.9"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "commonjs",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
