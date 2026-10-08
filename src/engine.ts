@@ -1,5 +1,5 @@
 import { MAX_COIN_PIECES, MAX_CONFETTI_PIECES, SIMULATION_TIME_SCALE } from "./constants";
-import { sampleCollectPiece, spawnCollectPieces } from "./physics/collect";
+import { retargetCollectPiece, sampleCollectPiece, spawnCollectPieces } from "./physics/collect";
 import { integrateParticle, isParticleDead, spawnParticles } from "./physics/spawn";
 import { computeSkewX, computeWobbleScale } from "./physics/wobble";
 import type {
@@ -16,7 +16,7 @@ import type {
 	ResolvedAppearance,
 	Viewport,
 } from "./types";
-import { parseCollectOptions, parseConfettiOptions } from "./utils/validation";
+import { parseCollectOptions, parseConfettiOptions, warnIfScreenCapped } from "./utils/validation";
 
 /** Static look of one mounted piece; fixed for its lifetime. */
 export interface SlotLook {
@@ -67,6 +67,7 @@ interface CollectSlot extends BaseSlot {
 	readonly piece: CollectPiece;
 	readonly index: number;
 	readonly startedAtMs: number;
+	readonly trackTarget?: () => ConfettiOrigin | null;
 	frame: SlotFrame;
 }
 
@@ -148,6 +149,7 @@ export class ParticleEngine {
 			const resolved = parseConfettiOptions(options, this.center);
 			if (this.skipForMotion(resolved)) return this.settle(batch, 0);
 			const particles = spawnParticles(resolved).slice(0, this.capacity(resolved.appearance));
+			warnIfScreenCapped(resolved.appearance, resolved.particleCount, particles.length);
 			this.settle(batch, particles.length);
 			this.compact();
 			for (const particle of particles) {
@@ -173,6 +175,7 @@ export class ParticleEngine {
 			const resolved = parseCollectOptions(options, this.center);
 			if (this.skipForMotion(resolved)) return this.settle(batch, 0);
 			const pieces = spawnCollectPieces(resolved).slice(0, this.capacity(resolved.appearance));
+			warnIfScreenCapped(resolved.appearance, resolved.particleCount, pieces.length);
 			this.settle(batch, pieces.length);
 			this.compact();
 			pieces.forEach((piece, index) => {
@@ -184,6 +187,7 @@ export class ParticleEngine {
 					piece,
 					index,
 					startedAtMs: this.clockMs,
+					...(options.trackTarget ? { trackTarget: options.trackTarget } : {}),
 					frame: HIDDEN_FRAME,
 					look: lookOf(resolved, piece.color, piece.shape, piece.size, piece.size),
 				});
@@ -204,6 +208,10 @@ export class ParticleEngine {
 				integrateParticle(slot.particle, simDt, slot.physics);
 				if (isParticleDead(slot.particle, this.viewport, slot.originY)) this.kill(slot);
 			} else {
+				const nextTarget = slot.trackTarget?.();
+				if (nextTarget !== null && nextTarget !== undefined && Number.isFinite(nextTarget.x) && Number.isFinite(nextTarget.y)) {
+					retargetCollectPiece(slot.piece, nextTarget);
+				}
 				const sample = sampleCollectPiece(slot.piece, this.clockMs - slot.startedAtMs);
 				slot.frame = {
 					x: sample.x,
@@ -253,7 +261,7 @@ export class ParticleEngine {
 		return this.reducedMotion && look.disableForReducedMotion;
 	}
 
-	/** Free view budget for the given look. */
+	/** Free views under the safety ceiling for this look. */
 	private capacity(appearance: ParticleAppearance): number {
 		const max = appearance === "coin" ? MAX_COIN_PIECES : MAX_CONFETTI_PIECES;
 		let used = 0;

@@ -10,9 +10,12 @@ import type {
 export const DEFAULT_PARTICLE_COUNT = 60;
 export const DEFAULT_COIN_COUNT = 12;
 export const MIN_PARTICLE_COUNT = 1;
-/** On-screen budgets: every piece is a native view. */
-export const MAX_CONFETTI_PIECES = 120;
-export const MAX_COIN_PIECES = 40;
+/**
+ * Safety ceilings. The caller chooses `particleCount`; each piece is a view,
+ * so a high count costs more. Requests above these are clamped and warned.
+ */
+export const MAX_CONFETTI_PIECES = 300;
+export const MAX_COIN_PIECES = 150;
 
 export const DEFAULT_ANGLE = 270;
 export const DEFAULT_SPREAD = 45;

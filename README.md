@@ -47,7 +47,7 @@ await confetti.collect({
 });
 ```
 
-`collect` flies pieces from `origin` to `target`. They start about 2.4× size, follow a short arc, and shrink to about 0.2× as they land. `target` is window coordinates. `measureCenter(ref)` reads a view with `measureInWindow` and returns its center.
+`collect` flies pieces from `origin` to `target`. They start about 2.4× size, follow a short arc, and shrink to about 0.2× as they land. `target` is window coordinates. `measureCenter(ref)` reads a view with `measureInWindow` and returns its center. Pass `trackTarget: () => latestCenter` when that view can move, for example while the screen scrolls.
 
 Calls made before `ParticleHost` mounts are queued.
 
@@ -87,7 +87,7 @@ All seven images ship in the npm package. That is most of the tarball. The JS st
 | --- | --- | --- |
 | `appearance` | `"confetti"` | `"coin"` draws the coin image |
 | `coinType` | `"h-keystone"` | Ignored unless `appearance` is `"coin"` |
-| `particleCount` | 60 confetti / 12 coins | Capped at **120** confetti and **40** coins |
+| `particleCount` | 60 confetti / 12 coins | You choose the count. Each piece is a view, so a higher count costs more. Safety cap: **300** confetti and **150** coins. A higher request is clamped, and the library warns. |
 | `origin` | center of the host | Window coordinates |
 | `preset` | — | `celebration`, `subtle`, `cannon`, `spark` |
 | `angle` | `270` | Degrees, up |
@@ -113,7 +113,7 @@ Collect-only: `target` (required), `flightMs` (900), `staggerMs` (60), `onArrive
 
 ## What stays on the web package
 
-Canvas snapshot, motion trails, the velocity heatmap, and bursts above 120 pieces. Those need a canvas. This package is the phone-sized version: rewards and celebrations, not 500 sprites.
+Canvas snapshot, motion trails, and the velocity heatmap. Those need a canvas. This package draws each piece as a view, so `particleCount` is yours up to the safety cap (300 confetti, 150 coins).
 
 ## Demo
 

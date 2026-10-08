@@ -82,12 +82,42 @@ function resolveDuration(value: unknown): ConfettiDuration {
 	return "normal";
 }
 
-/** Count clamped to the view budget for the chosen look. */
+/** Safety ceiling for one look. The caller chooses the count up to this. */
+export function pieceCeiling(appearance: ParticleAppearance): number {
+	return appearance === "coin" ? MAX_COIN_PIECES : MAX_CONFETTI_PIECES;
+}
+
+function warnBudget(message: string): void {
+	console.warn(`micro-canvas-confetti-native: ${message}`);
+}
+
+/** Count clamped to the safety ceiling. Warns when the caller asks for more. */
 function resolveCount(value: unknown, appearance: ParticleAppearance): number {
 	const isCoin = appearance === "coin";
+	const max = pieceCeiling(appearance);
 	if (!isFiniteNumber(value)) return isCoin ? DEFAULT_COIN_COUNT : DEFAULT_PARTICLE_COUNT;
-	const max = isCoin ? MAX_COIN_PIECES : MAX_CONFETTI_PIECES;
-	return clamp(Math.round(value), MIN_PARTICLE_COUNT, max);
+	const requested = Math.round(value);
+	if (requested > max) {
+		const label = isCoin ? "coins" : "confetti";
+		warnBudget(
+			`particleCount ${requested} is above the ${label} safety cap of ${max}. Each piece is a view, so the count was clamped. Higher counts increase load.`,
+		);
+	}
+	return clamp(requested, MIN_PARTICLE_COUNT, max);
+}
+
+/** Warns when a burst is cut because the screen is already at the ceiling. */
+export function warnIfScreenCapped(
+	appearance: ParticleAppearance,
+	requested: number,
+	spawned: number,
+): void {
+	if (spawned >= requested) return;
+	const label = appearance === "coin" ? "coins" : "confetti";
+	const max = pieceCeiling(appearance);
+	warnBudget(
+		`${label} safety cap is ${max} views on screen. Spawned ${spawned} of ${requested}. Wait for pieces to leave.`,
+	);
 }
 
 function resolveAppearance(options: AppearanceOptions, defaultScalar: number): ResolvedAppearance {

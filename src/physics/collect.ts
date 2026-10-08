@@ -11,7 +11,7 @@ import {
 	CONFETTI_WIDTH_RANGE,
 	MIN_FLATNESS,
 } from "../constants";
-import type { CollectFrame, CollectPiece, ResolvedCollectOptions } from "../types";
+import type { CollectFrame, CollectPiece, ConfettiOrigin, ResolvedCollectOptions } from "../types";
 import { easeInOutCubic, easeInQuad, lerp, pickRandom, randomInRange } from "../utils/math";
 import { computeWobbleScale } from "./wobble";
 
@@ -65,6 +65,17 @@ export function spawnCollectPieces(options: ResolvedCollectOptions): CollectPiec
 		}
 	}
 	return pieces;
+}
+
+/** Point the rest of the flight at a new window position, keeping the arc shape. */
+export function retargetCollectPiece(piece: CollectPiece, target: ConfettiOrigin): void {
+	const dx = target.x - piece.endX;
+	const dy = target.y - piece.endY;
+	if (dx === 0 && dy === 0) return;
+	piece.endX = target.x;
+	piece.endY = target.y;
+	piece.controlX += dx;
+	piece.controlY += dy;
 }
 
 /** Position, size, and opacity of a collect piece `elapsedMs` after the flight started. */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { COLLECT_END_SCALE, COLLECT_START_SCALE } from "../src/constants";
-import { sampleCollectPiece, spawnCollectPieces } from "../src/physics/collect";
+import { retargetCollectPiece, sampleCollectPiece, spawnCollectPieces } from "../src/physics/collect";
 import { parseCollectOptions } from "../src/utils/validation";
 
 const CENTER = { x: 200, y: 400 };
@@ -54,6 +54,16 @@ describe("collect flight", () => {
 		expect(end.y).toBeCloseTo(TARGET.y);
 		expect(end.scale).toBeCloseTo(COLLECT_END_SCALE);
 		expect(end.opacity).toBe(0);
+	});
+
+	it("lands on a target that moves after launch", () => {
+		const piece = pieces[0];
+		if (piece === undefined) throw new Error("no piece");
+		const moved = { x: TARGET.x - 80, y: TARGET.y + 120 };
+		retargetCollectPiece(piece, moved);
+		const end = sampleCollectPiece(piece, piece.delayMs + piece.flightMs);
+		expect(end.x).toBeCloseTo(moved.x);
+		expect(end.y).toBeCloseTo(moved.y);
 	});
 
 	it("stays opaque mid-flight", () => {

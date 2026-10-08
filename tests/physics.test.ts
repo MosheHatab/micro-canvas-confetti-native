@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
 	DEFAULT_COIN_COUNT,
@@ -28,13 +28,17 @@ describe("parseConfettiOptions", () => {
 		expect(resolved.coinType).toBe("h-keystone");
 	});
 
-	it("clamps counts to the view budgets", () => {
+	it("clamps counts to the safety ceiling and warns", () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
 		expect(parseConfettiOptions({ particleCount: 999 }, CENTER).particleCount).toBe(
 			MAX_CONFETTI_PIECES,
 		);
 		expect(
 			parseConfettiOptions({ appearance: "coin", particleCount: 999 }, CENTER).particleCount,
 		).toBe(MAX_COIN_PIECES);
+		expect(warn).toHaveBeenCalledTimes(2);
+		expect(String(warn.mock.calls[0]?.[0])).toContain(String(MAX_CONFETTI_PIECES));
+		warn.mockRestore();
 	});
 
 	it("merges presets under explicit options", () => {

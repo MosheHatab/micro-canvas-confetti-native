@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
-import { Dimensions, Image, type LayoutChangeEvent, StyleSheet, View } from "react-native";
+import { Dimensions, Image, type LayoutChangeEvent, Platform, StyleSheet, View } from "react-native";
 
 import { engine } from "../api";
 import { COIN_IMAGES } from "../coins";
@@ -148,7 +148,7 @@ export function ParticleHost({ zIndex = DEFAULT_Z_INDEX }: ParticleHostProps) {
 			ref={rootRef}
 			pointerEvents="none"
 			onLayout={onLayout}
-			style={[StyleSheet.absoluteFill, { zIndex, elevation: zIndex }]}
+			style={[StyleSheet.absoluteFill, webFixed, { zIndex, elevation: zIndex }]}
 		>
 			<View style={[styles.canvas, { left: -offset.x, top: -offset.y }]}>
 				{engine.getSlots().map((slot) => (
@@ -158,6 +158,10 @@ export function ParticleHost({ zIndex = DEFAULT_Z_INDEX }: ParticleHostProps) {
 		</View>
 	);
 }
+
+/** Web absolute positioning scrolls with the page. Fixed keeps the flight on screen. */
+const webFixed =
+	Platform.OS === "web" ? ({ position: "fixed" } as unknown as { position: "absolute" }) : null;
 
 const styles = StyleSheet.create({
 	canvas: { position: "absolute" },

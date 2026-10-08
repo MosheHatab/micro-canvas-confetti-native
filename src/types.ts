@@ -88,6 +88,11 @@ export interface CollectOptions extends AppearanceOptions {
 	readonly staggerMs?: number;
 	/** Called as each piece lands — handy for ticking a counter up. */
 	readonly onArrive?: (index: number, total: number) => void;
+	/**
+	 * Read each frame so the flight follows a moving badge (scroll, layout).
+	 * Return window coordinates. `target` is the starting aim.
+	 */
+	readonly trackTarget?: () => ConfettiOrigin | null;
 }
 
 /** A single burst piece and its motion state. */
@@ -175,10 +180,10 @@ export interface ResolvedCollectOptions extends ResolvedAppearance {
 export interface CollectPiece {
 	readonly startX: number;
 	readonly startY: number;
-	readonly controlX: number;
-	readonly controlY: number;
-	readonly endX: number;
-	readonly endY: number;
+	controlX: number;
+	controlY: number;
+	endX: number;
+	endY: number;
 	/** ms after the flight starts before this piece moves. */
 	readonly delayMs: number;
 	readonly flightMs: number;
