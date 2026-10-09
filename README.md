@@ -142,7 +142,7 @@ npm install
 npm run start        # press a / i / w for Android / iOS / web
 ```
 
-Hosted playground on [**Expo Snack**](https://snack.expo.dev/FgnE4CaGzizFVtduONh0j) — runs in the browser and on a phone via QR. It installs `micro-canvas-confetti-native` from npm. Snack is the right host for this demo: Vercel would only serve the web export, and a phone QR is the useful check for a React Native overlay.
+Hosted playground on [**Expo Snack**](https://snack.expo.dev/@moshehat/micro-canvas-confetti-native) — same screen as `example/`, in the browser and on a phone via QR. It installs `micro-canvas-confetti-native` from npm. Snack does not follow localhost; a new save replaces what that URL shows.
 
 ## Development
 
