@@ -1,5 +1,15 @@
 # micro-canvas-confetti-native
 
+**Confetti and coin bursts for React Native — Views and Image only, no extra native module.**
+
+[![npm version](https://img.shields.io/npm/v/micro-canvas-confetti-native.svg)](https://www.npmjs.com/package/micro-canvas-confetti-native)
+[![npm downloads](https://img.shields.io/npm/dm/micro-canvas-confetti-native.svg)](https://www.npmjs.com/package/micro-canvas-confetti-native)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/micro-canvas-confetti-native)](https://bundlephobia.com/package/micro-canvas-confetti-native)
+[![CI](https://github.com/MosheHatab/micro-canvas-confetti-native/actions/workflows/ci.yml/badge.svg)](https://github.com/MosheHatab/micro-canvas-confetti-native/actions/workflows/ci.yml)
+[![provenance](https://img.shields.io/npm/v/micro-canvas-confetti-native?label=provenance&logo=npm)](https://www.npmjs.com/package/micro-canvas-confetti-native#provenance)
+[![types](https://img.shields.io/npm/types/micro-canvas-confetti-native.svg)](https://www.npmjs.com/package/micro-canvas-confetti-native)
+[![license](https://img.shields.io/npm/l/micro-canvas-confetti-native.svg)](./LICENSE)
+
 Confetti and coin bursts for React Native. Same presets and physics as [`micro-canvas-confetti-physics`](https://www.npmjs.com/package/micro-canvas-confetti-physics), plus image coins and a **collect** flight that starts big and shrinks into a label or box.
 
 Drawn with `View` and `Image` only. Peers are `react` and `react-native`. No Skia, no Reanimated, no extra native module.
@@ -124,11 +134,15 @@ Canvas snapshot, motion trails, and the velocity heatmap. Those need a canvas. T
 
 ## Demo
 
+The full playground (presets, coin types, collect-into-a-badge) is in [`example/`](./example):
+
 ```sh
 cd example
 npm install
-npm run start
+npm run start        # press a / i / w for Android / iOS / web
 ```
+
+Hosted playground on [**Expo Snack**](https://snack.expo.dev/FgnE4CaGzizFVtduONh0j) — runs in the browser and on a phone via QR. It installs `micro-canvas-confetti-native` from npm. Snack is the right host for this demo: Vercel would only serve the web export, and a phone QR is the useful check for a React Native overlay.
 
 ## Development
 
@@ -138,5 +152,7 @@ npm run lint
 npm run typecheck
 npm run build
 ```
+
+Cloning this repo to publish your own package: [PUBLISHING.md](./PUBLISHING.md).
 
 MIT © Moshe Hatab
