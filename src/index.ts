@@ -29,4 +29,5 @@ export type {
 	Particle,
 	ParticleAppearance,
 	ParticleShape,
+	RenderCoinFn,
 } from "./types";

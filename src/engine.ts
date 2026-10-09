@@ -13,6 +13,7 @@ import type {
 	ParticleAppearance,
 	ParticleShape,
 	PhysicsConfig,
+	RenderCoinFn,
 	ResolvedAppearance,
 	Viewport,
 } from "./types";
@@ -23,6 +24,7 @@ export interface SlotLook {
 	readonly appearance: ParticleAppearance;
 	readonly coinType: CoinType;
 	readonly coinSource?: CoinSource;
+	readonly renderCoin?: RenderCoinFn;
 	readonly color: string;
 	readonly shape: ParticleShape;
 	readonly width: number;
@@ -50,6 +52,8 @@ export interface Batch {
 
 interface BaseSlot {
 	readonly id: number;
+	/** Index within the burst, passed to `renderCoin`. */
+	readonly index: number;
 	readonly look: SlotLook;
 	readonly batch: Batch;
 	alive: boolean;
@@ -65,7 +69,6 @@ interface BurstSlot extends BaseSlot {
 interface CollectSlot extends BaseSlot {
 	readonly kind: "collect";
 	readonly piece: CollectPiece;
-	readonly index: number;
 	readonly startedAtMs: number;
 	readonly trackTarget?: () => ConfettiOrigin | null;
 	frame: SlotFrame;
@@ -152,10 +155,11 @@ export class ParticleEngine {
 			warnIfScreenCapped(resolved.appearance, resolved.particleCount, particles.length);
 			this.settle(batch, particles.length);
 			this.compact();
-			for (const particle of particles) {
+			particles.forEach((particle, index) => {
 				this.slots.push({
 					kind: "burst",
 					id: this.nextId++,
+					index,
 					alive: true,
 					batch,
 					particle,
@@ -163,7 +167,7 @@ export class ParticleEngine {
 					originY: resolved.origin.y,
 					look: lookOf(resolved, particle.color, particle.shape, particle.width, particle.height),
 				});
-			}
+			});
 			this.notify();
 		});
 	}
@@ -301,6 +305,7 @@ function lookOf(
 		appearance: look.appearance,
 		coinType: look.coinType,
 		...(look.coinSource !== undefined ? { coinSource: look.coinSource } : {}),
+		...(look.renderCoin !== undefined ? { renderCoin: look.renderCoin } : {}),
 		color,
 		shape,
 		width,

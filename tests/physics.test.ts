@@ -9,6 +9,7 @@ import {
 import { applyDrag, applyDrag2D } from "../src/physics/drag";
 import { integrateParticle, isParticleDead, spawnParticles } from "../src/physics/spawn";
 import { computeWobbleScale } from "../src/physics/wobble";
+import type { RenderCoinFn } from "../src/types";
 import { parseConfettiOptions, resolveCoinType } from "../src/utils/validation";
 
 const CENTER = { x: 200, y: 400 };
@@ -54,10 +55,18 @@ describe("parseConfettiOptions", () => {
 });
 
 describe("resolveCoinType", () => {
-	it("keeps known types and falls back to h-keystone", () => {
-		expect(resolveCoinType("oshik")).toBe("oshik");
+	it("keeps the built-in type and falls back to h-keystone", () => {
+		expect(resolveCoinType("h-keystone")).toBe("h-keystone");
 		expect(resolveCoinType("generic")).toBe("h-keystone");
 		expect(resolveCoinType(undefined)).toBe("h-keystone");
+	});
+
+	it("keeps renderCoin and treats that burst as coins", () => {
+		const renderCoin = (() => null) as unknown as RenderCoinFn;
+		const resolved = parseConfettiOptions({ renderCoin, particleCount: 3 }, CENTER);
+		expect(resolved.appearance).toBe("coin");
+		expect(resolved.renderCoin).toBe(renderCoin);
+		expect(resolved.particleCount).toBe(3);
 	});
 });
 

@@ -121,10 +121,12 @@ export function warnIfScreenCapped(
 }
 
 function resolveAppearance(options: AppearanceOptions, defaultScalar: number): ResolvedAppearance {
+	const renderCoin = typeof options.renderCoin === "function" ? options.renderCoin : undefined;
 	return {
-		appearance: resolveAppearanceKind(options.appearance),
+		appearance: renderCoin ? "coin" : resolveAppearanceKind(options.appearance),
 		coinType: resolveCoinType(options.coinType),
 		...(options.coinSource !== undefined ? { coinSource: options.coinSource } : {}),
+		...(renderCoin ? { renderCoin } : {}),
 		colors: resolveColors(options.colors),
 		shapes: resolveShapes(options.shapes),
 		scalar: isFiniteNumber(options.scalar)

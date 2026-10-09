@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Dimensions, Image, type LayoutChangeEvent, Platform, StyleSheet, View } from "react-native";
 
 import { engine } from "../api";
@@ -53,6 +53,18 @@ function Piece({ slot, onRef }: { slot: Slot; onRef: (id: number, node: PieceNod
 	const ref = (node: PieceNode | null) => onRef(slot.id, node);
 	const box = { width: look.width, height: look.height };
 	const motion = nativeStyle(frameOf(slot), look);
+	const customCoin = useMemo(
+		() => (look.renderCoin ? look.renderCoin(slot.index) : null),
+		[look, slot.index],
+	);
+
+	if (customCoin) {
+		return (
+			<View ref={ref as never} collapsable={false} style={[styles.piece, box, motion]}>
+				{customCoin}
+			</View>
+		);
+	}
 
 	if (look.appearance === "coin") {
 		return (

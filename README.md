@@ -28,18 +28,33 @@ export function Root() {
 
 ## Quick start
 
-```ts
+```tsx
 import { confetti, measureCenter } from "micro-canvas-confetti-native";
+import { Circle, Svg } from "react-native-svg";
 
 confetti();
 confetti({ preset: "cannon", origin: { x: 180, y: 640 } });
 
-// coinType omitted → h-keystone
+// coinType omitted → h-keystone. Or pass your own PNG / SVG node.
 confetti({ appearance: "coin", particleCount: 12, origin: { x: 200, y: 400 } });
+confetti({
+  appearance: "coin",
+  particleCount: 12,
+  coinSource: require("./coins/guess-and-draw.png"),
+});
+confetti({
+  appearance: "coin",
+  particleCount: 8,
+  renderCoin: () => (
+    <Svg width="100%" height="100%" viewBox="0 0 32 32">
+      <Circle cx="16" cy="16" r="14" fill="#f5b301" />
+    </Svg>
+  ),
+});
 
 await confetti.collect({
   appearance: "coin",
-  coinType: "stellar-gateway",
+  coinSource: require("./coins/stellar-gateway.png"),
   origin: { x: screenW / 2, y: screenH / 2 },
   target: await measureCenter(coinsLabelRef),
   particleCount: 8,
@@ -51,42 +66,34 @@ await confetti.collect({
 
 Calls made before `ParticleHost` mounts are queued.
 
-## Coin types
+## Coins
 
-`coinType` is optional. The default is `h-keystone` (`DEFAULT_COIN_TYPE`). There is no `"generic"` id.
+The library ships one built-in, `h-keystone` (`DEFAULT_COIN_TYPE`). Pass your own art per burst:
 
-| `coinType` | Role |
+| Input | Use |
 | --- | --- |
-| `h-keystone` | Default |
-| `stellar-gateway` | |
-| `explorer-command-crest` | |
-| `golden-thread` | |
-| `mechanical-keyboard` | |
-| `oshik` | |
-| `guess-and-draw` | |
+| `coinType` | Omit it, or `"h-keystone"` |
+| `coinSource` | A PNG or WebP. Anything `<Image source>` accepts: `require("./coin.png")` or `{ uri }` |
+| `renderCoin` | `(index) => ReactElement`. An SVG from `react-native-svg`, or any view you already render. This package does not parse SVG files |
 
-Pass `coinSource` (anything `<Image source>` accepts) to draw your own sprite instead of a built-in.
+`renderCoin` wins over `coinSource`, which wins over `coinType`. The node should fill the piece (`width` and `height` `"100%"`). The host moves one wrapper view per coin.
 
-### Replacing the artwork
+A shared PNG is decoded once. An SVG (or any custom tree) is copied once per coin, so keep that burst smaller when the graphic is heavy.
 
-Drop one PNG per type in `src/assets/coins/` before publish. The files shipped today are placeholders (except `mechanical-keyboard.png`, resized from the keyboard-game coin).
+### Artwork that reads well
 
-- PNG-24, transparent background, sRGB
-- Square **256×256**
+- PNG-24 or WebP, transparent, sRGB, square **256×256**
 - Disc centered with about **8%** padding so rotation does not clip the edge
 - Still readable at **~32dp** (the shrunk end) and **~96dp** (the big start)
-- **Under ~40 KB** each
-- Exact names: `h-keystone.png`, `stellar-gateway.png`, `explorer-command-crest.png`, `golden-thread.png`, `mechanical-keyboard.png`, `oshik.png`, `guess-and-draw.png`
-- One file per type. The view scales it. No `@2x` / `@3x` set
-
-All seven images ship in the npm package. That is most of the tarball. The JS stays small.
 
 ## API
 
 | Option | Burst default | Notes |
 | --- | --- | --- |
 | `appearance` | `"confetti"` | `"coin"` draws the coin image |
-| `coinType` | `"h-keystone"` | Ignored unless `appearance` is `"coin"` |
+| `coinType` | `"h-keystone"` | Built-in coin. Ignored when `coinSource` or `renderCoin` is set |
+| `coinSource` | — | Your PNG or WebP. Overrides `coinType` |
+| `renderCoin` | — | `(index) => node`. Your SVG or view. Overrides `coinSource` |
 | `particleCount` | 60 confetti / 12 coins | You choose the count. Each piece is a view, so a higher count costs more. Safety cap: **300** confetti and **150** coins. A higher request is clamped, and the library warns. |
 | `origin` | center of the host | Window coordinates |
 | `preset` | — | `celebration`, `subtle`, `cannon`, `spark` |

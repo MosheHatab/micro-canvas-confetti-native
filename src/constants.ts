@@ -100,15 +100,7 @@ export const DEFAULT_SHAPES: readonly ParticleShape[] = ["rect", "circle"];
 export const CONFETTI_WIDTH_RANGE = [6, 12] as const;
 export const CONFETTI_HEIGHT_RANGE = [4, 10] as const;
 
-export const COIN_TYPES: readonly CoinType[] = [
-	"h-keystone",
-	"stellar-gateway",
-	"explorer-command-crest",
-	"golden-thread",
-	"mechanical-keyboard",
-	"oshik",
-	"guess-and-draw",
-];
+export const COIN_TYPES: readonly CoinType[] = ["h-keystone"];
 export const DEFAULT_COIN_TYPE: CoinType = "h-keystone";
 /** Coin edge length in dp before `scalar`. */
 export const COIN_SIZE = 40;

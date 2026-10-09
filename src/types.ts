@@ -1,18 +1,20 @@
+import type { ReactElement } from "react";
+
 /** Shape drawn for a single confetti piece. */
 export type ParticleShape = "rect" | "circle";
 
 /** What each piece looks like: colored confetti or a coin image. */
 export type ParticleAppearance = "confetti" | "coin";
 
-/** Built-in coin artwork. Omit to use `h-keystone`. */
-export type CoinType =
-	| "h-keystone"
-	| "stellar-gateway"
-	| "explorer-command-crest"
-	| "golden-thread"
-	| "mechanical-keyboard"
-	| "oshik"
-	| "guess-and-draw";
+/** Built-in coin artwork. Omit to use `h-keystone`, or pass your own image. */
+export type CoinType = "h-keystone";
+
+/**
+ * One node per coin, called with the piece index when that piece is created.
+ * Use this for an SVG the app already renders. The host moves a wrapper view;
+ * the node should fill that box (`width` and `height` `"100%"`).
+ */
+export type RenderCoinFn = (index: number) => ReactElement;
 
 /**
  * Image for a custom coin — anything React Native `<Image source>` accepts
@@ -42,10 +44,15 @@ export type CreateParticleFn = (
 export interface AppearanceOptions {
 	/** `"confetti"` (default) or `"coin"`. */
 	readonly appearance?: ParticleAppearance;
-	/** Built-in coin. Defaults to `h-keystone`. */
+	/** Built-in coin. Defaults to `h-keystone`. Ignored when `coinSource` or `renderCoin` is set. */
 	readonly coinType?: CoinType;
-	/** Custom coin image; overrides `coinType`. */
+	/** Custom bitmap. Anything `<Image source>` accepts (PNG, WebP). Overrides `coinType`. */
 	readonly coinSource?: CoinSource;
+	/**
+	 * Custom node per coin, for an SVG (or any view) the app owns.
+	 * Overrides `coinSource`. A heavy tree copied once per coin costs more than one shared PNG.
+	 */
+	readonly renderCoin?: RenderCoinFn;
 	readonly colors?: readonly string[];
 	readonly shapes?: readonly ParticleShape[];
 	/** Size multiplier (0.2–3). */
@@ -141,6 +148,7 @@ export interface ResolvedAppearance {
 	readonly appearance: ParticleAppearance;
 	readonly coinType: CoinType;
 	readonly coinSource?: CoinSource;
+	readonly renderCoin?: RenderCoinFn;
 	readonly colors: readonly string[];
 	readonly shapes: readonly ParticleShape[];
 	readonly scalar: number;

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
-	Image,
 	PanResponder,
 	Platform,
 	Pressable,
@@ -15,8 +14,6 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import {
-	COIN_IMAGES,
-	COIN_TYPES,
 	confetti,
 	confettiSequence,
 	getActiveParticleCount,
@@ -26,21 +23,26 @@ import {
 	ParticleHost,
 	PRESET_OPTIONS,
 	reset,
-	type CoinType,
 	type ConfettiDuration,
 	type ConfettiPreset,
 } from "micro-canvas-confetti-native";
 
-import { formatSnippet, toConfettiOptions, type PlaygroundSettings } from "./snippet";
+import { BUILTIN_COIN_IDS, CUSTOM_COIN_IDS, DemoCoinGlyph, isCustomCoin, type DemoCoinId } from "./coins";
+import { formatSnippet, toConfettiOptions, type DemoCategory, type PlaygroundSettings } from "./snippet";
 
+const CATEGORIES: readonly { id: DemoCategory; label: string }[] = [
+	{ id: "confetti", label: "Confetti" },
+	{ id: "coin", label: "Coins" },
+	{ id: "custom", label: "Custom" },
+];
 const PRESETS: readonly ConfettiPreset[] = ["celebration", "subtle", "cannon", "spark"];
 const DURATIONS: readonly ConfettiDuration[] = ["short", "normal", "long"];
 const REACH_PRESETS = [0, 50, 200, 500, 1000] as const;
 const WIDE = 960;
 
 const INITIAL: PlaygroundSettings = {
-	appearance: "confetti",
-	coinType: "h-keystone",
+	category: "confetti",
+	coinId: "h-keystone",
 	preset: null,
 	particleCount: 80,
 	scalar: 1,
@@ -52,8 +54,8 @@ const INITIAL: PlaygroundSettings = {
 	disableForReducedMotion: true,
 };
 
-function clampCount(count: number, appearance: PlaygroundSettings["appearance"]): number {
-	const max = appearance === "coin" ? MAX_COIN_PIECES : MAX_CONFETTI_PIECES;
+function clampCount(count: number, category: DemoCategory): number {
+	const max = category === "confetti" ? MAX_CONFETTI_PIECES : MAX_COIN_PIECES;
 	return Math.min(max, Math.max(1, Math.round(count)));
 }
 
@@ -69,7 +71,7 @@ export default function App() {
 	const [capNote, setCapNote] = useState<string | null>(null);
 	const [ring, setRing] = useState<{ x: number; y: number; radius: number } | null>(null);
 	const snippet = formatSnippet(settings);
-	const pieceMax = settings.appearance === "coin" ? MAX_COIN_PIECES : MAX_CONFETTI_PIECES;
+	const pieceMax = settings.category === "confetti" ? MAX_CONFETTI_PIECES : MAX_COIN_PIECES;
 
 	useEffect(() => {
 		const timer = setInterval(() => setLiveCount(getActiveParticleCount()), 200);
@@ -80,7 +82,7 @@ export default function App() {
 		setSettings((current) => {
 			const next = { ...current, ...partial };
 			if (!keepPreset && !("preset" in partial)) next.preset = null;
-			if (partial.appearance) next.particleCount = clampCount(next.particleCount, partial.appearance);
+			if (partial.category) next.particleCount = clampCount(next.particleCount, partial.category);
 			return next;
 		});
 	}
@@ -90,7 +92,7 @@ export default function App() {
 		setSettings((current) => ({
 			...current,
 			preset,
-			particleCount: clampCount(options.particleCount ?? current.particleCount, current.appearance),
+			particleCount: clampCount(options.particleCount ?? current.particleCount, current.category),
 			startVelocity: options.startVelocity ?? current.startVelocity,
 			spread: options.spread ?? current.spread,
 			gravity: options.gravity ?? current.gravity,
@@ -103,7 +105,7 @@ export default function App() {
 	function noteBudget(before: number, requested: number) {
 		const added = getActiveParticleCount() - before;
 		if (added < requested && (added > 0 || before > 0)) {
-			const label = settings.appearance === "coin" ? "coins" : "confetti";
+			const label = settings.category === "confetti" ? "confetti" : "coins";
 			setCapNote(
 				`Safety cap is ${pieceMax} ${label} on screen. Added ${added} of ${requested}. Wait for pieces to leave.`,
 			);
@@ -153,12 +155,10 @@ export default function App() {
 		const count = Math.min(settings.particleCount, MAX_COIN_PIECES);
 		const before = getActiveParticleCount();
 		const flight = confetti.collect({
-			appearance: "coin",
-			coinType: settings.coinType,
+			...toConfettiOptions(settings),
 			target,
 			trackTarget: () => badgeCenter.current,
 			particleCount: count,
-			scalar: settings.scalar,
 			onArrive: () => setBalance((value) => value + 1),
 		});
 		const added = getActiveParticleCount() - before;
@@ -212,37 +212,33 @@ export default function App() {
 		</Pressable>
 	);
 
-	const coinsSelected = settings.appearance === "coin";
+	function selectCategory(category: DemoCategory) {
+		const coinId: DemoCoinId =
+			category === "coin" && isCustomCoin(settings.coinId)
+				? "h-keystone"
+				: category === "custom" && !isCustomCoin(settings.coinId)
+					? "custom"
+					: settings.coinId;
+		patch({ category, coinId });
+	}
+
+	const coinIds = settings.category === "custom" ? CUSTOM_COIN_IDS : BUILTIN_COIN_IDS;
 
 	const controls = (
 		<View style={[styles.panel, wide && styles.panelWide]}>
 			<View style={styles.row}>
-				{(["confetti", "coin"] as const).map((appearance) => (
+				{CATEGORIES.map((category) => (
 					<Pressable
-						key={appearance}
-						onPress={() => patch({ appearance })}
-						style={[styles.segment, settings.appearance === appearance && styles.segmentOn]}
+						key={category.id}
+						onPress={() => selectCategory(category.id)}
+						style={[styles.segment, settings.category === category.id && styles.segmentOn]}
 					>
-						<Text style={styles.segmentLabel}>{appearance === "coin" ? "Coins" : "Confetti"}</Text>
+						<Text style={styles.segmentLabel}>{category.label}</Text>
 					</Pressable>
 				))}
 			</View>
 
-			{coinsSelected ? (
-				<Section title="Coins" collapsible={!wide}>
-					<View style={styles.wrap}>
-						{COIN_TYPES.map((type) => (
-							<CoinChip
-								key={type}
-								type={type}
-								selected={type === settings.coinType}
-								onPress={() => patch({ coinType: type })}
-							/>
-						))}
-					</View>
-					<Action label="Collect into badge" onPress={collectIntoBadge} accent compact={!wide} />
-				</Section>
-			) : (
+			{settings.category === "confetti" ? (
 				<Section title="Presets" collapsible={!wide}>
 					<View style={styles.presetGrid}>
 						{PRESETS.map((preset) => {
@@ -264,6 +260,20 @@ export default function App() {
 							);
 						})}
 					</View>
+				</Section>
+			) : (
+				<Section title={settings.category === "custom" ? "Custom" : "Coins"} collapsible={!wide}>
+					<View style={styles.wrap}>
+						{coinIds.map((id) => (
+							<CoinChip
+								key={id}
+								id={id}
+								selected={id === settings.coinId}
+								onPress={() => patch({ coinId: id })}
+							/>
+						))}
+					</View>
+					<Action label="Collect into badge" onPress={collectIntoBadge} accent compact={!wide} />
 				</Section>
 			)}
 
@@ -392,7 +402,7 @@ export default function App() {
 							<Text style={styles.title}>Confetti + coins</Text>
 						</View>
 						<View ref={badgeRef} onLayout={rememberBadge} style={styles.badge}>
-							<Image source={COIN_IMAGES[settings.coinType]} style={styles.badgeCoin} />
+							<DemoCoinGlyph id={settings.coinId} size={32} />
 							<Text style={styles.balance}>{balance}</Text>
 						</View>
 					</View>
@@ -452,11 +462,11 @@ function Action({
 	);
 }
 
-function CoinChip({ type, selected, onPress }: { type: CoinType; selected: boolean; onPress: () => void }) {
+function CoinChip({ id, selected, onPress }: { id: DemoCoinId; selected: boolean; onPress: () => void }) {
 	return (
 		<Pressable onPress={onPress} style={[styles.chip, selected && styles.chipOn]} accessibilityState={{ selected }}>
-			<Image source={COIN_IMAGES[type]} style={styles.chipCoin} />
-			<Text style={styles.chipLabel}>{type}</Text>
+			<DemoCoinGlyph id={id} size={18} />
+			<Text style={styles.chipLabel}>{id}</Text>
 		</Pressable>
 	);
 }
@@ -613,7 +623,6 @@ const styles = StyleSheet.create({
 		borderColor: "#2c303a",
 	},
 	chipOn: { borderColor: "#f5b301" },
-	chipCoin: { width: 18, height: 18 },
 	chipLabel: { color: "#e4e7ee", fontSize: 12 },
 	presetGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
 	preset: {
