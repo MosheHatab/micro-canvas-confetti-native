@@ -1,6 +1,6 @@
 {
   "name": "micro-canvas-confetti-native",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Tiny React Native confetti and coin bursts — same physics as micro-canvas-confetti-physics, plus image coins and a collect flight into a target. Views + Image only, no native modules.",
   "license": "MIT",
   "author": "Moshe Hatab",
